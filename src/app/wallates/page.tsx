@@ -32,14 +32,14 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import path from "path";
 
 interface Wallet {
-  solPublicKey: string;
-  solPrivateKey: string;
-  ethPublicKey: string;
-  ethPrivateKey: string;
+  publicKey: string;
+  privateKey: string;
   mnemonic: string;
   path: string;
+  blockchain:String
 }
 
 const WalletGenerator = () => {
@@ -118,6 +118,54 @@ const WalletGenerator = () => {
     );
   };
 
+
+  const genrateSolWallet = ( mnemonic: string,accountIndex: number) =>{
+    try{
+      const seedBuffer = mnemonicToSeedSync(mnemonic);
+
+      const path = `m/44'/501'/${accountIndex}'/0'`; 
+      const { key: derivedSeed } = derivePath(path, seedBuffer.toString("hex"));
+      let publicKeyEncoded: string;
+      let privateKeyEncoded: string;
+  
+      const { secretKey } = nacl.sign.keyPair.fromSeed(derivedSeed);
+      const keypair = Keypair.fromSecretKey(secretKey);
+  
+      privateKeyEncoded = bs58.encode(secretKey);
+      publicKeyEncoded = keypair.publicKey.toBase58();
+  
+
+      return {solPrivateKeyEncoded:privateKeyEncoded,solPublicKeyEncoded:publicKeyEncoded}
+    }catch (error) {
+      toast.error("Failed to generate wallet. Please try again.");
+      return null;
+    }
+    
+  }
+
+  const genrateEthWallet = (mnemonic: string,accountIndex: number) =>{
+    try{
+      const seedBuffer = mnemonicToSeedSync(mnemonic);
+
+      const path = `m/44'/501'/${accountIndex}'/0'`; 
+      const { key: derivedSeed } = derivePath(path, seedBuffer.toString("hex"));
+      let publicKeyEncoded: string;
+      let privateKeyEncoded: string;
+  
+      const privateKey = Buffer.from(derivedSeed).toString("hex");
+      privateKeyEncoded = privateKey;
+
+      const wallet = new ethers.Wallet(privateKey);
+      publicKeyEncoded = wallet.address;
+
+      console.log('wallet genrated sucessfully!!')
+    }catch (error) {
+      toast.error("Failed to generate wallet. Please try again.");
+      return null;
+    }
+  }
+
+
   const generateWalletFromMnemonic = (
     pathType: string,
     mnemonic: string,
@@ -125,45 +173,44 @@ const WalletGenerator = () => {
    
   ): Wallet | null => {
     try {
-      const seedBuffer = mnemonicToSeedSync(mnemonic);
 
-      // solana
-      const solPath = `m/44'/501'/${accountIndex}'/0'`;  
-      const ethPath = `m/44'/60'/0'/0/${accountIndex}`;  
-
-      const { key: solDerivedSeed } = derivePath(solPath, seedBuffer.toString("hex"));
      
-      const { key: ethDerivedSeed } = derivePath(ethPath, seedBuffer.toString("hex"));
+    //  const solanKeys = genrateSolWallet(mnemonic,accountIndex)
+       console.log(genrateEthWallet(mnemonic,accountIndex))
+    //   console.log( solanKeys?.solPrivateKeyEncoded,solanKeys?.solPublicKeyEncoded,'this is isolate');
+      const seedBuffer = mnemonicToSeedSync(mnemonic);
+      const path = `m/44'/${pathType}'/${accountIndex}'/0'`; 
+      const { key: derivedSeed } = derivePath(path, seedBuffer.toString("hex"));
 
+      let publicKeyEncoded: string;
+      let privateKeyEncoded: string;
 
-
-      let solPublicKeyEncoded: string;
-      let solPrivateKeyEncoded: string;
-      let ethPublicKeyEncoded: string;
-      let ethPrivateKeyEncoded: string;
-
+      if (pathType === "501") {
         // Solana
-        const { secretKey } = nacl.sign.keyPair.fromSeed(solDerivedSeed);
+        const { secretKey } = nacl.sign.keyPair.fromSeed(derivedSeed);
         const keypair = Keypair.fromSecretKey(secretKey);
 
-        solPrivateKeyEncoded = bs58.encode(secretKey);
-        solPublicKeyEncoded = keypair.publicKey.toBase58();
-
+        privateKeyEncoded = bs58.encode(secretKey);
+        publicKeyEncoded = keypair.publicKey.toBase58();
+      } else if (pathType === "60") {
         // Ethereum
-        const privateKey = Buffer.from(ethDerivedSeed).toString("hex");
-        ethPrivateKeyEncoded = privateKey;
+        const privateKey = Buffer.from(derivedSeed).toString("hex");
+        privateKeyEncoded = privateKey;
 
         const wallet = new ethers.Wallet(privateKey);
-        ethPublicKeyEncoded = wallet.address;
-   
+        publicKeyEncoded = wallet.address;
+      } else {
+        toast.error("Unsupported path type.");
+        return null;
+      }
+      const  blockchain = pathType==="501"?"solana":"etherium";
 
-      return {
-        solPublicKey: solPublicKeyEncoded,
-        solPrivateKey: solPrivateKeyEncoded,
-        ethPublicKey: ethPublicKeyEncoded,
-        ethPrivateKey: ethPrivateKeyEncoded,
+      return {  
+        publicKey: publicKeyEncoded,
+        privateKey: privateKeyEncoded,
         mnemonic,
-        path: "",
+        path,
+        blockchain:blockchain
       };
     } catch (error) {
       toast.error("Failed to generate wallet. Please try again.");
@@ -250,7 +297,7 @@ const WalletGenerator = () => {
               >
                 <div className="flex flex-col gap-2">
                   <h1 className="tracking-tighter text-4xl md:text-5xl font-black">
-                    MyVault supports multiple blockchains
+                    Kosh supports multiple blockchains
                   </h1>
                   <p className="text-primary/80 font-semibold text-lg md:text-xl">
                     Choose a blockchain to get started.
@@ -464,7 +511,7 @@ const WalletGenerator = () => {
               >
                 <div className="flex justify-between px-8 py-6">
                   <h3 className="font-bold text-2xl md:text-3xl tracking-tighter ">
-                    Wallet {index + 1} 
+                    Wallet {index + 1} {wallet.blockchain}
                   </h3>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
