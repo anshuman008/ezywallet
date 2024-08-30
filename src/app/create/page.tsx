@@ -4,63 +4,118 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Heading } from '@radix-ui/themes'
 import { Keypair } from '@solana/web3.js'
-import { mnemonicToSeedSync } from 'bip39'
+import { generateMnemonic, mnemonicToSeedSync, validateMnemonic } from 'bip39'
 import { derivePath } from 'ed25519-hd-key'
 import Image from 'next/image'
 import React, { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import nacl from 'tweetnacl'
 import bs58 from "bs58";
+import { ethers } from 'ethers'
+import { CloseEye, OpenEye } from '@/utils/Icons'
 
+interface Wallet {
+    publicKey: string;
+    privateKey: string;
+    mnemonic: string;
+    path: string;
+    blockchain: string
+}
 
-const cryptos = [
-    { name: "Etherium" },
-    { name: "Solana" }
-]
-const wordList = [
-    "abandon", "ability", "able", "about", "above", "absent", "absorb", "abstract",
-    "absurd", "abuse", "access", "accident"
-];
-
-
-const page = () => {
+const Page = () => {
 
     const [step, setStep] = useState(0);
-    const [network,setNetwork] = useState('');
+    const [network, setNetwork] = useState('');
+    const [mnemonicWords, setMnemonicWords] = useState<string[]>(
+        Array(12).fill(" ")
+    );
+    const [wallets, setWallets] = useState<Wallet[]>([]);
 
-    const genrateSolWallet = ( mnemonic: string,accountIndex: number) =>{
-        try{
-          const seedBuffer = mnemonicToSeedSync(mnemonic);
-    
-          const path = `m/44'/501'/${accountIndex}'/0'`; 
-          const { key: derivedSeed } = derivePath(path, seedBuffer.toString("hex"));
-          let publicKeyEncoded: string;
-          let privateKeyEncoded: string;
-      
-          const { secretKey } = nacl.sign.keyPair.fromSeed(derivedSeed);
-          const keypair = Keypair.fromSecretKey(secretKey);
-      
-          privateKeyEncoded = bs58.encode(secretKey);
-          publicKeyEncoded = keypair.publicKey.toBase58();
-      
-    
-          return {solPrivateKeyEncoded:privateKeyEncoded,solPublicKeyEncoded:publicKeyEncoded}
-        }catch (error) {
-          toast.error("Failed to generate wallet. Please try again.");
-          return null;
+
+    const genrateSolWallet = (mnemonic: string, accountIndex: number) => {
+        try {
+            const seedBuffer = mnemonicToSeedSync(mnemonic);
+
+            const path = `m/44'/501'/${accountIndex}'/0'`;
+            const { key: derivedSeed } = derivePath(path, seedBuffer.toString("hex"));
+            let publicKeyEncoded: string;
+            let privateKeyEncoded: string;
+
+            const { secretKey } = nacl.sign.keyPair.fromSeed(derivedSeed);
+            const keypair = Keypair.fromSecretKey(secretKey);
+
+            privateKeyEncoded = bs58.encode(secretKey);
+            publicKeyEncoded = keypair.publicKey.toBase58();
+
+            const newwallet = {
+                publicKey: publicKeyEncoded,
+                privateKey: privateKeyEncoded,
+                mnemonic: mnemonic,
+                path: path,
+                blockchain: "solana"
+            }
+
+            setWallets([...wallets, newwallet]);
+
+            console.log('wallet genrated succesfully!!')
+        } catch (error) {
+            toast.error("Failed to generate wallet. Please try again.");
+            return null;
         }
-        
-      }
 
-    useEffect(()=>{
-     
-    },[step])
+    }
+
+
+    const genrateEthWallet = (mnemonic: string, accountIndex: number) => {
+        try {
+            const seedBuffer = mnemonicToSeedSync(mnemonic);
+
+            const path = `m/44'/501'/${accountIndex}'/0'`;
+            const { key: derivedSeed } = derivePath(path, seedBuffer.toString("hex"));
+            let publicKeyEncoded: string;
+            let privateKeyEncoded: string;
+
+            const privateKey = Buffer.from(derivedSeed).toString("hex");
+            privateKeyEncoded = privateKey;
+
+            const wallet = new ethers.Wallet(privateKey);
+            publicKeyEncoded = wallet.address;
+
+
+            const newwallet = {
+                publicKey: publicKeyEncoded,
+                privateKey: privateKeyEncoded,
+                mnemonic: mnemonic,
+                path: path,
+                blockchain: "eitherium"
+            }
+
+            setWallets([...wallets, newwallet]);
+            console.log('wallet genrated sucessfully!!')
+        } catch (error) {
+            toast.error("Failed to generate wallet. Please try again.");
+            return null;
+        }
+    }
+
+    useEffect(() => {
+        console.log('updated wallet', wallets)
+    }, [wallets])
+
+    useEffect(() => {
+        if (step === 2) {
+            const mnemonic = generateMnemonic();
+            const words = mnemonic.split(" ");
+            setMnemonicWords(words);
+            network === "solana"?genrateSolWallet(mnemonic, wallets.length): genrateEthWallet(mnemonic, wallets.length);
+        }
+    }, [step])
 
     return (
         <div className=' h-screen flex flex-col gap-y-4 justify-center items-center dark:bg-[#0e0f14]'>
 
             {
-                step === 0 ? <SelectNetwor step={step} setStep={setStep} setNetwork={setNetwork} /> : step === 1 ? <WarningComp step={step} setStep={setStep} /> : step === 2 ? <SecretPharas step={step} setStep={setStep} /> : <PasswordComp step={step} setStep={setStep} />
+                step === 0 ? <SelectNetwor step={step} setStep={setStep} setNetwork={setNetwork} /> : step === 1 ? <WarningComp step={step} setStep={setStep} /> : step === 2 ? <SecretPharas mnemonicWords={mnemonicWords} step={step} setStep={setStep} /> : <PasswordComp step={step} setStep={setStep} />
 
             }
 
@@ -78,10 +133,10 @@ const page = () => {
     )
 }
 
-export default page
+export default Page
 
 
-const SelectNetwor = ({step,setStep,setNetwork}) => {
+const SelectNetwor = ({ step, setStep, setNetwork }) => {
     return <div className='w-[35%] flex justify-center items-center flex-col gap-y-6'>
 
         <div className='flex flex-col justify-center items-center text-center gap-y-6'>
@@ -96,12 +151,12 @@ const SelectNetwor = ({step,setStep,setNetwork}) => {
             <Input placeholder='Search Network' className='w-full text-lg py-8 bg-[#202127]' />
         </div>
 
-        <div onClick={()=>{setNetwork('solana'), setStep((prev)=>prev+1)}} className='w-full p-2 rounded-lg bg-[#202127] flex items-center cursor-pointer'>
+        <div onClick={() => { setNetwork('solana'), setStep((prev) => prev + 1) }} className='w-full p-2 rounded-lg bg-[#202127] flex items-center cursor-pointer'>
             <Image src={'/sol.png'} height={100} width={100} alt='sol' />
             <span className='text-xl font-bold'>Solana</span>
         </div>
 
-        <div  onClick={()=>{setNetwork('etherium'), setStep((prev)=>prev+1)}}className='w-full p-2 py-4 pl-10 gap-3 rounded-lg bg-[#202127] flex items-center cursor-pointer'>
+        <div onClick={() => { setNetwork('etherium'), setStep((prev) => prev + 1) }} className='w-full p-2 py-4 pl-10 gap-3 rounded-lg bg-[#202127] flex items-center cursor-pointer'>
             <Image src={'/eth.png'} height={50} width={50} alt='sol' />
             <span className='text-xl font-bold'>Etherium</span>
         </div>
@@ -110,9 +165,9 @@ const SelectNetwor = ({step,setStep,setNetwork}) => {
 
 
 
-const WarningComp = ({step,setStep}) => {
+const WarningComp = ({ step, setStep }) => {
 
-    const [checked,setChecked] = useState(false);
+    const [checked, setChecked] = useState(false);
     return <div className='w-[35%] flex justify-center items-center flex-col gap-y-6'>
 
         <div className='flex flex-col justify-center items-center text-center gap-y-6'>
@@ -149,25 +204,25 @@ const WarningComp = ({step,setStep}) => {
 
 
         <div className='flex gap-2 p-3 justify-center items-start rounded-lg hover:text-gray-300'>
-            <Checkbox className='size-5 mt-2' onCheckedChange={()=>setChecked((prev) => !prev)} />
+            <Checkbox className='size-5 mt-2' onCheckedChange={() => setChecked((prev) => !prev)} />
             <span className='font-bold'>I understand that I am responsible for saving my,
                 secret recovery phrase, and that it is the only way,
                 to recover my wallet.</span>
         </div>
 
 
-        <Button onClick={()=>setStep((prev) => prev+1)} className={`text-lg px-10 ${checked?'bg-green-500 text-white':'bg-gray-500'}`} disabled={!checked} >Next</Button>
+        <Button onClick={() => setStep((prev) => prev + 1)} className={`text-lg px-10}`} disabled={!checked} >Next</Button>
     </div>
 }
 
 
-const SecretPharas = () => {
+const SecretPharas = ({ mnemonicWords, step, setStep }) => {
 
     const [isCopied, setIsCopied] = useState(false);
+    const [checked, setChecked] = useState(false);
 
     const handleCopy = () => {
-
-        const wordsToCopy = wordList.join(' ');
+        const wordsToCopy = mnemonicWords.join(" ");
         navigator.clipboard.writeText(wordsToCopy)
             .then(() => {
                 setIsCopied(true);
@@ -201,7 +256,7 @@ const SecretPharas = () => {
                 {/* <Image src={'/eth.png'} height={50} width={50} alt='sol' /> */}
 
 
-                {wordList.map((wd, index) => (<span className=' font-bold'>{index + 1}. {wd}</span>))}
+                {mnemonicWords?.map((wd: string, index: number) => (<span key={index} className=' font-bold'>{index + 1}. {wd}</span>))}
 
             </div>
 
@@ -212,58 +267,101 @@ const SecretPharas = () => {
 
 
         <div className='flex gap-2 p-3 justify-center text-gray-500 items-center rounded-lg hover:text-gray-300'>
-            <Checkbox className='size-5 ' />
+            <Checkbox className='size-5 'onCheckedChange={() => setChecked((prev) => !prev)} />
             <span className='font-bold'>I saved my recovery phrase</span>
         </div>
 
-        <Button className='text-lg px-10'>Next</Button>
+        <Button className='text-lg px-10' disabled={!checked} onClick={()=>setStep((prev)=>prev+1)}>Next</Button>
     </div>
 }
+
+// const PasswordComp = () => {
+
+//     const [passVisible, setPassVisible] = useState(false);
+//     return <div className='w-[35%] flex justify-center items-center flex-col gap-y-6'>
+
+//         <div className='flex flex-col justify-center items-center text-center gap-y-6'>
+//             <Heading className='text-4xl font-bold'>Create a Password</Heading>
+//             <span className='text-2xl text-gray-500'>
+//                 It should be at least 8 characters.
+//                 <br /> You’ll need this to unlock Backpack.
+//             </span>
+//         </div>
+
+//         <div className='w-full flex justify-center items-center bg-[#202127] pr-3'>
+//             <Input placeholder='Password'minLength={8}  className='w-full text-lg py-8 bg-[#202127] focus-visible:ring-0 ' type={passVisible ? 'password' : 'text'} />
+//             {
+//                 passVisible ? <span onClick={()=>setPassVisible(false)}><OpenEye /></span> : <span onClick={()=>setPassVisible(true)}><CloseEye/></span>
+//             }
+
+//         </div>
+
+//         <div className='w-full'>
+//             <Input placeholder='Confirm Passwrod' minLength={8} className='w-full text-lg py-8 bg-[#202127]' />
+//         </div>
+
+//         <div className='flex gap-2 p-3 justify-center items-center rounded-lg hover:text-gray-300'>
+//             <Checkbox className='size-5 ' />
+//             <span className='font-bold'>I agree to the <span className='text-blue-500'>Term of Services</span>
+//             </span>
+//         </div>
+//         <Button className='text-lg px-10'>Next</Button>
+//     </div>
+// }
 
 const PasswordComp = () => {
-
     const [passVisible, setPassVisible] = useState(false);
-    return <div className='w-[35%] flex justify-center items-center flex-col gap-y-6'>
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
 
-        <div className='flex flex-col justify-center items-center text-center gap-y-6'>
-            <Heading className='text-4xl font-bold'>Create a Password</Heading>
-            <span className='text-2xl text-gray-500'>
-                It should be at least 8 characters.
-                <br /> You’ll need this to unlock Backpack.
-            </span>
+    const isButtonDisabled = password.length < 8 || password !== confirmPassword;
+
+    return (
+        <div className='w-[35%] flex justify-center items-center flex-col gap-y-6'>
+
+            <div className='flex flex-col justify-center items-center text-center gap-y-6'>
+                <Heading className='text-4xl font-bold'>Create a Password</Heading>
+                <span className='text-2xl text-gray-500'>
+                    It should be at least 8 characters.
+                    <br /> You’ll need this to unlock Backpack.
+                </span>
+            </div>
+
+            <div className='w-full flex justify-center items-center bg-[#202127] pr-3'>
+                <Input 
+                    placeholder='Password' 
+                    minLength={8}  
+                    className='w-full text-lg py-8 bg-[#202127] focus-visible:ring-0' 
+                    type={passVisible ? 'text' : 'password'} 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                />
+                {
+                    passVisible 
+                    ? <span onClick={() => setPassVisible(false)}><OpenEye /></span> 
+                    : <span onClick={() => setPassVisible(true)}><CloseEye /></span>
+                }
+            </div>
+
+            <div className='w-full'>
+                <Input 
+                    placeholder='Confirm Password' 
+                    minLength={8} 
+                    className='w-full text-lg py-8 bg-[#202127]' 
+                    type='password'
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+            </div>
+
+            <div className='flex gap-2 p-3 justify-center items-center rounded-lg hover:text-gray-300'>
+                <Checkbox className='size-5' />
+                <span className='font-bold'>I agree to the <span className='text-blue-500'>Term of Services</span></span>
+            </div>
+
+            <Button className={`text-lg px-10 ${isButtonDisabled ? 'opacity-50 cursor-not-allowed' : ''}`} disabled={isButtonDisabled}>
+                Next
+            </Button>
         </div>
-
-        <div className='w-full flex justify-center items-center bg-[#202127] pr-3'>
-            <Input placeholder='Password' className='w-full text-lg py-8 bg-[#202127] focus-visible:ring-0 ' type={passVisible ? 'text' : 'password'} />
-
-
-
-            {
-                passVisible ? <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6 cursor-pointer" onClick={() => setPassVisible(!passVisible)}>
-                    <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
-                    <path fillRule="evenodd" d="M1.323 11.447C2.811 6.976 7.028 3.75 12.001 3.75c4.97 0 9.185 3.223 10.675 7.69.12.362.12.752 0 1.113-1.487 4.471-5.705 7.697-10.677 7.697-4.97 0-9.186-3.223-10.675-7.69a1.762 1.762 0 0 1 0-1.113ZM17.25 12a5.25 5.25 0 1 1-10.5 0 5.25 5.25 0 0 1 10.5 0Z" clipRule="evenodd" />
-                </svg> : <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6 cursor-pointer" onClick={() => setPassVisible(!passVisible)}>
-                    <path d="M3.53 2.47a.75.75 0 0 0-1.06 1.06l18 18a.75.75 0 1 0 1.06-1.06l-18-18ZM22.676 12.553a11.249 11.249 0 0 1-2.631 4.31l-3.099-3.099a5.25 5.25 0 0 0-6.71-6.71L7.759 4.577a11.217 11.217 0 0 1 4.242-.827c4.97 0 9.185 3.223 10.675 7.69.12.362.12.752 0 1.113Z" />
-                    <path d="M15.75 12c0 .18-.013.357-.037.53l-4.244-4.243A3.75 3.75 0 0 1 15.75 12ZM12.53 15.713l-4.243-4.244a3.75 3.75 0 0 0 4.244 4.243Z" />
-                    <path d="M6.75 12c0-.619.107-1.213.304-1.764l-3.1-3.1a11.25 11.25 0 0 0-2.63 4.31c-.12.362-.12.752 0 1.114 1.489 4.467 5.704 7.69 10.675 7.69 1.5 0 2.933-.294 4.242-.827l-2.477-2.477A5.25 5.25 0 0 1 6.75 12Z" />
-                </svg>
-
-
-            }
-
-        </div>
-
-        <div className='w-full'>
-            <Input placeholder='Confirm Passwrod' className='w-full text-lg py-8 bg-[#202127]' />
-        </div>
-
-
-
-        <div className='flex gap-2 p-3 justify-center items-center rounded-lg hover:text-gray-300'>
-            <Checkbox className='size-5 ' />
-            <span className='font-bold'>I agree to the <span className='text-blue-500'>Term of Services</span>
-            </span>
-        </div>
-        <Button className='text-lg px-10'>Next</Button>
-    </div>
-}
+    );
+};
