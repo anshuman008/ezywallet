@@ -187,11 +187,13 @@ const WalletGenerator = () => {
 
       if (pathType === "501") {
         // Solana
-        const { secretKey } = nacl.sign.keyPair.fromSeed(derivedSeed);
-        const keypair = Keypair.fromSecretKey(secretKey);
 
-        privateKeyEncoded = bs58.encode(secretKey);
-        publicKeyEncoded = keypair.publicKey.toBase58();
+       const solKeys = genrateSolWallet(mnemonic,accountIndex)
+        // const { secretKey } = nacl.sign.keyPair.fromSeed(derivedSeed);
+        // const keypair = Keypair.fromSecretKey(secretKey);
+
+        privateKeyEncoded = solKeys?.solPrivateKeyEncoded ;
+        publicKeyEncoded = solKeys?.solPublicKeyEncoded;
       } else if (pathType === "60") {
         // Ethereum
         const privateKey = Buffer.from(derivedSeed).toString("hex");
