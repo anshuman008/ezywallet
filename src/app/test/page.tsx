@@ -1,10 +1,22 @@
+'use client'
 import React from "react";
-import { BackgroundBeamsWithCollision } from "@/components/ui/background-beams-with-collision";
+import { useAppContext } from "@/context";
+export default function Test() 
+{
 
-export default function BackgroundBeamsWithCollisionDemo() {
+  const {wallets, setWallets} = useAppContext();
+
   return (
-    <BackgroundBeamsWithCollision >
-     <h1>heloo</h1>
-    </BackgroundBeamsWithCollision>
+  <div className="h-screen flex justify-center items-center">
+   
+   <div className="flex flex-col gap-y-7 ">
+   <h1>Hellow world: {wallets?.length}</h1>
+   <div onClick={()=>setWallets((prev) => [...prev,"hii"])}>change name</div>
+   {/* <h1>here is the length : {JSON.stringify(allwallets)}</h1> */}
+   </div>
+
+
+   {/* <button onClick={()=> setAllwallets((prev) => [...prev,{name:"anshu",id:allwallets.legth+1}])}>Add new wallet</button> */}
+  </div>  
   );
 }

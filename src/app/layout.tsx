@@ -4,7 +4,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/themeprovider";
 import Navbar from "@/components/NavBar";
-
+import { AppWrapper } from "@/context";
 const manrope = Manrope({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -42,7 +42,10 @@ export default function RootLayout({
         >
           <Toaster />
           <Navbar/>
-          {children}
+          <AppWrapper>
+             {children}
+          </AppWrapper>
+          
         </ThemeProvider>
       </body>
     </html>
