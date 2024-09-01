@@ -10,10 +10,8 @@ import { toast } from "sonner";
 
 
 
-const genrateSolWallet = (mnemonic: string, accountIndex: number,setWallets) => {
+const genrateSolWallet = (mnemonic: string, accountIndex: number,setWallet) => {
     try {
-
-        
         const seedBuffer = mnemonicToSeedSync(mnemonic);
 
         const path = `m/44'/501'/${accountIndex}'/0'`;
@@ -35,7 +33,7 @@ const genrateSolWallet = (mnemonic: string, accountIndex: number,setWallets) => 
             blockchain: "solana"
         }
 
-      setWallets((prev)=>[...prev,newwallet]);
+        setWallet(newwallet);
           
       toast('solana wallet genrated sucessfully!!')
     } catch (error) {
@@ -46,7 +44,7 @@ const genrateSolWallet = (mnemonic: string, accountIndex: number,setWallets) => 
 }
 
 
-const genrateEthWallet = (mnemonic: string, accountIndex: number,setWallets) => {
+const genrateEthWallet = (mnemonic: string, accountIndex: number,setWallet) => {
     try {
         const seedBuffer = mnemonicToSeedSync(mnemonic);
 
@@ -70,10 +68,9 @@ const genrateEthWallet = (mnemonic: string, accountIndex: number,setWallets) => 
             blockchain: "eitherium"
         }
 
-        setWallets((prev)=>[...prev,newwallet]);
+        setWallet(newwallet);
           
         toast('eth wallet genrated sucessfully!!')
-
     } catch (error) {
         toast.error("Failed to generate wallet. Please try again.");
         return null;

@@ -1,10 +1,10 @@
 'use client'
-import { useAppContext } from '@/context';
+import { useWalletStore } from '@/state/wallet';
 import Image from 'next/image'
 import React from 'react'
 
 const Page = () => {
-  const {wallets, setWallets} = useAppContext();
+  const {allWallets, setWallet} = useWalletStore();
 
   return (
     <div className='flex flex-col justify-center items-center h-full gap-y-20 px-4'>
@@ -12,7 +12,7 @@ const Page = () => {
       {/* header section  */}
       
       <div>
-        {JSON.stringify(wallets)}
+        {JSON.stringify(allWallets)}
       </div>
       <div className='flex justify-between px-2 w-full'>
         <span className='p-3 rounded-full bg-red-300 text-red-500'>A1</span>

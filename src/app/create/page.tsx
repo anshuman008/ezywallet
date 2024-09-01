@@ -7,7 +7,7 @@ import WarningComp from '@/components/createpage/WarningComp'
 import PasswordComp from '@/components/createpage/PasswordComp'
 import SecretPharas from '@/components/createpage/SecretPhrase'
 import { genrateEthWallet,genrateSolWallet } from '@/lib/WalletsFunctions'
-import { useAppContext } from '@/context'
+import { useWalletStore } from '@/state/wallet'
 
 
 interface Wallet {
@@ -20,26 +20,22 @@ interface Wallet {
 
 const Page = () => {
 
-    const {wallets, setWallets} = useAppContext();
+    const {allWallets,setWallet} = useWalletStore()
     
     const [step, setStep] = useState(0);
     const [network, setNetwork] = useState('');
     const [mnemonicWords, setMnemonicWords] = useState<string[]>(
         Array(12).fill(" ")
     );
-    // const [wallets, setWallets] = useState<Wallet[]>([]);
 
 
-    useEffect(() => {
-        console.log('updated wallet', wallets)
-    }, [wallets])
 
     useEffect(() => {
         if (step === 2) {
             const mnemonic = generateMnemonic();
             const words = mnemonic.split(" ");
             setMnemonicWords(words);
-        network === "solana"?genrateSolWallet(mnemonic, wallets.length,setWallets): genrateEthWallet(mnemonic, wallets.length,setWallets);
+        network === "solana"?genrateSolWallet(mnemonic, allWallets.length,setWallet): genrateEthWallet(mnemonic, allWallets.length,setWallet);
 
 
         }
