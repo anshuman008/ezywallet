@@ -10,17 +10,12 @@ import { genrateEthWallet,genrateSolWallet } from '@/lib/WalletsFunctions'
 import { useWalletStore } from '@/state/wallet'
 
 
-interface Wallet {
-    publicKey: string;
-    privateKey: string;
-    mnemonic: string;
-    path: string;
-    blockchain: string
-}
+
+
 
 const Page = () => {
 
-    const {allWallets,setWallet} = useWalletStore()
+    const {allvaults,setVault,setWallet} = useWalletStore()
     
     const [step, setStep] = useState(0);
     const [network, setNetwork] = useState('');
@@ -35,8 +30,9 @@ const Page = () => {
             const mnemonic = generateMnemonic();
             const words = mnemonic.split(" ");
             setMnemonicWords(words);
-        network === "solana"?genrateSolWallet(mnemonic, allWallets.length,setWallet): genrateEthWallet(mnemonic, allWallets.length,setWallet);
+        network === "solana"?genrateSolWallet(mnemonic, 0,setWallet,setVault): genrateEthWallet(mnemonic, 1,setWallet,setVault);
 
+         console.log(allvaults,'this is the all vaulsts');
 
         }
     }, [step])
@@ -46,7 +42,6 @@ const Page = () => {
 
             {
                 step === 0 ? <SelectNetwork step={step} setStep={setStep} setNetwork={setNetwork} /> : step === 1 ? <WarningComp step={step} setStep={setStep} /> : step === 2 ? <SecretPharas mnemonicWords={mnemonicWords} step={step} setStep={setStep} /> : <PasswordComp setStep={setStep} />
-
             }
 
             <div className='flex gap-x-3 px-3 w-[35%]'>
@@ -55,7 +50,11 @@ const Page = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 15.75 3 12m0 0 3.75-3.75M3 12h18" />
                 </svg>
 
-                <span onClick={() => setStep((prev) => prev - 1)} className='cursor-pointer'>Back</span>
+                <span onClick={() => {
+                    if(step < 2){
+                        setStep((prev) => prev - 1)
+                    }
+                }} className='cursor-pointer'>Back</span>
             </div>
         </div>
     )
