@@ -4,7 +4,7 @@ import { Input } from "../ui/input"
 import Image from 'next/image'
 
 const SelectNetwork = ({ step, setStep, setNetwork }) => {
-    return <div className='w-[35%] flex justify-center items-center flex-col gap-y-6'>
+    return <div className='px-2 md:!px-0 md:w-[35%] flex justify-center items-center flex-col gap-y-6'>
 
         <div className='flex flex-col justify-center items-center text-center gap-y-6'>
             <Heading className='text-4xl font-bold'>Select Network</Heading>
@@ -19,12 +19,12 @@ const SelectNetwork = ({ step, setStep, setNetwork }) => {
         </div>
 
         <div onClick={() => { setNetwork('solana'), setStep((prev:any) => prev + 1) }} className='w-full p-2 rounded-lg bg-[#202127] flex items-center cursor-pointer'>
-            <Image src={'/sol.png'} height={100} width={100} alt='sol' />
+            <Image src={'/solana.png'} height={100} width={100} alt='sol' />
             <span className='text-xl font-bold'>Solana</span>
         </div>
 
         <div onClick={() => { setNetwork('etherium'), setStep((prev) => prev + 1) }} className='w-full p-2 py-4 pl-10 gap-3 rounded-lg bg-[#202127] flex items-center cursor-pointer'>
-            <Image src={'/eth.png'} height={50} width={50} alt='sol' />
+            <Image src={'/ethereum.png'} height={50} width={50} alt='sol' />
             <span className='text-xl font-bold'>Etherium</span>
         </div>
     </div>

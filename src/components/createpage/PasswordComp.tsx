@@ -18,7 +18,7 @@ const PasswordComp = ({setStep}) => {
     const isButtonDisabled = password.length < 8 || password !== confirmPassword;
 
     return (
-        <div className='w-[35%] flex justify-center items-center flex-col gap-y-6'>
+        <div className='px-2 md:!px-0 md:w-[35%]  flex justify-center items-center flex-col gap-y-6'>
 
             <div className='flex flex-col justify-center items-center text-center gap-y-6'>
                 <Heading className='text-4xl font-bold'>Create a Password</Heading>

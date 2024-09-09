@@ -23,11 +23,11 @@ const SecretPharas = ({ mnemonicWords, step, setStep }) => {
             });
     };
 
-    return <div className='w-[35%] flex justify-center items-center flex-col gap-y-6'>
+    return <div className='px-2 md:!px-0 md:w-[35%]  flex justify-center items-center flex-col gap-y-6'>
 
         <div className='flex flex-col justify-center items-center text-center gap-y-6'>
-            <Heading className='text-4xl font-bold'>Secret Recovery Phrase</Heading>
-            <span className='text-2xl text-gray-500'>
+            <Heading className=' text-2xl md:text-4xl font-bold'>Secret Recovery Phrase</Heading>
+            <span className=' text-xl md:text-2xl text-gray-500'>
                 Save these words in a safe place.
             </span>
 
@@ -40,8 +40,8 @@ const SecretPharas = ({ mnemonicWords, step, setStep }) => {
         <div className='flex justify-center items-center flex-col gap-y-2 w-full bg-[#202127] p-2 rounded-lg hover:bg-slate-800 cursor-pointer' onClick={handleCopy}>
 
 
-            <div className='w-full p-2 py-4 pl-10  rounded-lg  grid grid-cols-3 gap-10'>
-                {/* <Image src={'/eth.png'} height={50} width={50} alt='sol' /> */}
+            <div className='w-full p-1 md:p-2 md:py-4 md:pl-10  rounded-lg  grid grid-cols-3 gap-y-6 gap-x-5  md:gap-x-10 md:gap-y-10'>
+                {/* <Image src={'/ethereum.png'} height={50} width={50} alt='sol' /> */}
 
 
                 {mnemonicWords?.map((wd: string, index: number) => (<span key={index} className=' font-bold'>{index + 1}. {wd}</span>))}

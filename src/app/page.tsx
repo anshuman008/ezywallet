@@ -6,7 +6,7 @@ import { SolanaWallet } from "@/components/SollanaWallet";
 import { Button } from "@/components/ui/button";
 import PrimaryButton from "@/components/PrimaryButton";
 import { CloseEye, OpenEye } from "@/utils/Icons";
-
+import { airDropSol, fetchBalance } from "@/lib/WalletsFunctions";
 function Home() {
   const buttonStyle =
     "text-white bg-blue-700 hover:bg-blue-800 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800";
@@ -117,6 +117,17 @@ function Home() {
               <CloseEye/>
             )}
           </button>
+
+         {/* <button onClick={() => {
+          airDropSol('BQtx8KrbNW3T4W5wyGATHCo6BF7Xj2nEvJbd9d1u6eAh',10)
+         }}>test air drop</button> */}
+
+<button onClick={ async() => {
+            const res = await fetchBalance('BQtx8KrbNW3T4W5wyGATHCo6BF7Xj2nEvJbd9d1u6eAh');
+            console.log(res);
+            alert(res)
+         }}>fetch balance</button>
+
         </div>
         <br />
 

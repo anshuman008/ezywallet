@@ -7,7 +7,7 @@ import { useState } from "react";
 const WarningComp = ({ step, setStep }) => {
 
     const [checked, setChecked] = useState(false);
-    return <div className='w-[35%] flex justify-center items-center flex-col gap-y-6'>
+    return <div className='px-2 md:!px-0 md:w-[35%]  flex justify-center items-center flex-col gap-y-6'>
 
         <div className='flex flex-col justify-center items-center text-center gap-y-6'>
             <Heading className='text-4xl font-bold'>Secret Recovery Phrase Warning</Heading>
@@ -28,7 +28,7 @@ const WarningComp = ({ step, setStep }) => {
         </div>
 
         <div className='w-full p-2 py-4 pl-10 gap-3 rounded-lg bg-[#202127] flex items-center cursor-pointer'>
-            {/* <Image src={'/eth.png'} height={50} width={50} alt='sol' /> */}
+            {/* <Image src={'/ethereum.png'} height={50} width={50} alt='sol' /> */}
 
 
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6 text-green-500">

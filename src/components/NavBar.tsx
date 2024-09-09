@@ -15,7 +15,7 @@ const Navbar = () => {
               v1.0
             </span>
           </span>
-        </div>
+        </div>  
       </div>
       <ModeToggle />
     </nav>
