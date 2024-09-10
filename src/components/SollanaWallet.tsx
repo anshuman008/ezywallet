@@ -8,19 +8,22 @@ import { Connection, Keypair, LAMPORTS_PER_SOL, sendAndConfirmTransaction, Syste
 import nacl from "tweetnacl";
 import axios from "axios";
 import { Button } from "./ui/button";
+import { toast } from "sonner";
 // import Loader from "./ui/loader";
 
-export const SolanaWallet = ({ mnemonic,buttonStyle, net, refreshCounter }) => {
+export const SolanaWallet = ({ mnemonic, buttonStyle, net, refreshCounter }) => {
 
-    console.log(mnemonic,'this is the menomic')
+    console.log(mnemonic, 'this is the menomic')
     const [currentIndex, setCurrentIndex] = useState(0);
     const [wallet, setWallet] = useState([]);
     const [visible, setVisible] = useState(false);
-    const [visiblity,setVisiblity] = useState(false);
-    const [loading,setLoading] = useState(false);
+    const [visiblity, setVisiblity] = useState(false);
+    const [loading, setLoading] = useState(false);
     const mainnetRpc = "https://fittest-white-sound.solana-mainnet.quiknode.pro/2f08cc49d2b9b2116d50437b2105afe0b63b98bb";
     const devnetRpc = "https://fittest-white-sound.solana-devnet.quiknode.pro/2f08cc49d2b9b2116d50437b2105afe0b63b98bb";
     const solanaQuickNode_RPC = net === "mainnet" ? mainnetRpc : devnetRpc;
+    const alchemyApiKey = "8t1GNvMF9wKIerYRwDSEqZdg-o-VUzxx";
+    const alchemyRpc = `https://solana-devnet.g.alchemy.com/v2/${alchemyApiKey}`;
 
     const refreshBalanceSol = useCallback(async () => {
         const newWallet = await Promise.all(wallet.map(async (w) => {
@@ -50,7 +53,7 @@ export const SolanaWallet = ({ mnemonic,buttonStyle, net, refreshCounter }) => {
     }, [solanaQuickNode_RPC]);
 
     const addWallet = useCallback(async () => {
-        if(mnemonic===""){
+        if (mnemonic === "") {
             alert("Empty Seed Phrase");
             return;
         }
@@ -60,7 +63,7 @@ export const SolanaWallet = ({ mnemonic,buttonStyle, net, refreshCounter }) => {
         const keypair = Keypair.fromSeed(derivedSeed);
         const publicKey = keypair.publicKey.toBase58();
 
-        console.log(publicKey,'this is the publick key!!')
+        console.log(publicKey, 'this is the public key!!')
         const balance = await fetchBalance(publicKey);
         setWallet((prevWallets) => [
             ...prevWallets,
@@ -74,7 +77,7 @@ export const SolanaWallet = ({ mnemonic,buttonStyle, net, refreshCounter }) => {
     const [transferAmt, setTransferAmt] = useState(0);
 
     const transferSol = useCallback(async () => {
-        console.log(transPubkey,destPubkey,transferAmt);
+        console.log(transPubkey, destPubkey, transferAmt);
         try {
             const connection = new Connection(solanaQuickNode_RPC);
             const fromWallet = wallet.find(w => w.publicKey === transPubkey);
@@ -87,12 +90,15 @@ export const SolanaWallet = ({ mnemonic,buttonStyle, net, refreshCounter }) => {
                 })
             );
 
+
+            console.log(fromWallet.keypair),'this is im consoling!!!';
+
             const signature = await sendAndConfirmTransaction(
                 connection,
                 transaction,
                 [fromWallet.keypair]
             );
-            
+
             refreshBalanceSol();
             alert("Transaction Successful");
             console.log("Transfer Confirmed:", signature);
@@ -102,24 +108,27 @@ export const SolanaWallet = ({ mnemonic,buttonStyle, net, refreshCounter }) => {
         }
     }, [wallet, transPubkey, destPubkey, transferAmt, solanaQuickNode_RPC]);
 
-    const airDropSol = useCallback(async ()=>{
+    const airDropSol = useCallback(async () => {
         try {
-            const response = await axios.post(solanaQuickNode_RPC, {
+            const response = await axios.post(alchemyRpc, {
                 jsonrpc: "2.0",
                 id: 1,
                 method: "requestAirdrop",
-                params: [transPubkey,transferAmt*LAMPORTS_PER_SOL]
+                params: [transPubkey, transferAmt * LAMPORTS_PER_SOL]
             });
-            alert("Airdrop successfull");
+            toast("Airdrop successful");
+
+
+        
             refreshBalanceSol();
         } catch (e) {
-            alert("Too many airdrops requested. Wait 24 hours for a refill.");
-            console.log("Error while fetching balance", e);
+            toast("Too many airdrops requested. Wait 24 hours for a refill.");
+            console.log("Error during airdrop", e);
         }
-    },[solanaQuickNode_RPC,wallet,transPubkey,transferAmt]);
+    }, [alchemyRpc, transPubkey, transferAmt]);
 
     return <>
-        <Button  onClick={addWallet}>Add Sol wallet</Button>
+        <Button onClick={addWallet}>Add Sol wallet</Button>
         {loading && <>Loading.....</>}
         {visible && <div>
             <span className="font-black ml-5 text-white">From: </span>
@@ -147,27 +156,26 @@ export const SolanaWallet = ({ mnemonic,buttonStyle, net, refreshCounter }) => {
                 await airDropSol();
                 setLoading(false);
                 refreshBalanceSol();
-                
             }}>Confirm</button>
         </div>}
         {wallet.map(({ currentIndex, publicKey, balance }, index) => (
             <div className="text-white " key={index}>
                 <div className="border border-sky-500">
-                {publicKey} <span className="font-black text-white">{`Balance: ${balance} SOL`}</span><br />
-                <button className="text-white bg-sky-700 hover:bg-sky-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-3 py-2 text-center ml-2 me-2 mb-3 mt-2 dark:bg-sky-600 dark:hover:bg-sky-700 dark:focus:ring-sky-800" onClick={() => {
-                    setVisible(!visible);
-                    setVisiblity(false);
-                    setTransPubkey(publicKey);
-                }}>Transfer Sol</button>
-                <button className="text-white bg-sky-700 hover:bg-sky-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-3 py-2 text-center ml-2 me-2 mb-3 mt-2 dark:bg-sky-600 dark:hover:bg-sky-700 dark:focus:ring-sky-800" onClick={() => {
-                    if(net === "mainnet"){
-                        alert("Not Applicable on Mainnet");
-                        return;
-                    }
-                    setVisible(false);
-                    setVisiblity(!visiblity);
-                    setTransPubkey(publicKey);
-                }}>Airdrop Sol</button>
+                    {publicKey} <span className="font-black text-white">{`Balance: ${balance} SOL`}</span><br />
+                    <button className="text-white bg-sky-700 hover:bg-sky-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-3 py-2 text-center ml-2 me-2 mb-3 mt-2 dark:bg-sky-600 dark:hover:bg-sky-700 dark:focus:ring-sky-800" onClick={() => {
+                        setVisible(!visible);
+                        setVisiblity(false);
+                        setTransPubkey(publicKey);
+                    }}>Transfer Sol</button>
+                    <button className="text-white bg-sky-700 hover:bg-sky-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-3 py-2 text-center ml-2 me-2 mb-3 mt-2 dark:bg-sky-600 dark:hover:bg-sky-700 dark:focus:ring-sky-800" onClick={() => {
+                        if (net === "mainnet") {
+                            alert("Not Applicable on Mainnet");
+                            return;
+                        }
+                        setVisible(false);
+                        setVisiblity(!visiblity);
+                        setTransPubkey(publicKey);
+                    }}>Airdrop Sol</button>
                 </div>
             </div>
         ))}
