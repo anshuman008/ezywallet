@@ -18,12 +18,12 @@ const SelectNetwork = ({ step, setStep, setNetwork }) => {
             <Input placeholder='Search Network' className='w-full text-lg py-8 bg-[#202127]' />
         </div>
 
-        <div onClick={() => { setNetwork('solana'), setStep((prev:any) => prev + 1) }} className='w-full p-2 rounded-lg bg-[#202127] flex items-center cursor-pointer'>
-            <Image src={'/solana.png'} height={100} width={100} alt='sol' />
+        <div onClick={() => { setNetwork('solana'), setStep((prev:any) => prev + 1) }} className='w-full p-2 rounded-lg bg-[#202127] flex items-center cursor-pointer gap-x-3 px-3'>
+            <Image src={'/solana.png'} height={50} width={50} alt='sol' />
             <span className='text-xl font-bold'>Solana</span>
         </div>
 
-        <div onClick={() => { setNetwork('etherium'), setStep((prev) => prev + 1) }} className='w-full p-2 py-4 pl-10 gap-3 rounded-lg bg-[#202127] flex items-center cursor-pointer'>
+        <div onClick={() => { setNetwork('etherium'), setStep((prev) => prev + 1) }} className='w-full p-2 rounded-lg bg-[#202127] flex items-center cursor-pointer gap-x-3 px-3'>
             <Image src={'/ethereum.png'} height={50} width={50} alt='sol' />
             <span className='text-xl font-bold'>Etherium</span>
         </div>

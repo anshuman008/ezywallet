@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware'; // Import Zustand's persist middleware
 
 interface Wallet {
     publicKey: string;
@@ -7,7 +8,7 @@ interface Wallet {
     blockchain: string;
 }
 
-interface vault {
+interface Vault {
     accountId: number;
     ethwallets: Wallet[]; // Array of Ethereum wallets
     solwallets: Wallet[]; // Array of Solana wallets
@@ -15,49 +16,66 @@ interface vault {
 }
 
 interface VaultStore {
-    allvaults: vault[];
-    setVault: (newVault: vault) => void;
+    allvaults: Vault[];
+    setVault: (newVault: Vault) => void;
     setWallet: (newWallet: Wallet, network: string, accountId: number) => void;
-    getVault: (accountId: number) => vault | undefined;
+    getVault: (accountId: number) => Vault | undefined;
 }
 
 interface PasswordStore {
     password: string;
-    setPassword: (pass:string) => void;
+    setPassword: (pass: string) => void;
     getPassword: () => string;
 }
 
-export const useWalletStore = create<VaultStore>((set, get) => ({
-    allvaults: [],
-    
-    setVault: (newVault: vault) => set((state) => ({
-        allvaults: [...state.allvaults, newVault],
-    })),
+// Wallet Store with Persistence using LocalStorage
+export const useWalletStore = create<VaultStore>()(
+  persist(
+    (set, get) => ({
+      allvaults: [],
 
-    setWallet: (newWallet: Wallet, network: string, accountId: number) => set((state) => ({
+      setVault: (newVault: Vault) => set((state) => ({
+        allvaults: [...state.allvaults, newVault],
+      })),
+
+      setWallet: (newWallet: Wallet, network: string, accountId: number) => set((state) => ({
         allvaults: state.allvaults.map(vault => 
-            vault.accountId === accountId
+          vault.accountId === accountId
             ? {
                 ...vault,
                 ethwallets: network === 'ethereum' ? [...vault.ethwallets, newWallet] : vault.ethwallets,
                 solwallets: network === 'solana' ? [...vault.solwallets, newWallet] : vault.solwallets,
-            }
+              }
             : vault
         ),
-    })),
+      })),
 
-    getVault: (accountId: number) => {
+      getVault: (accountId: number) => {
         const { allvaults } = get();
         return allvaults.find(vault => vault.accountId === accountId);
-    },
-}));
-
-
-export const usePasswordStore =  create <PasswordStore> ((set,get) => ({
-    password: '',
-    setPassword: (pass: string) => set({password:pass}),
-    getPassword: () => {
-        const {password} = get();
-        return password;
+      },
+    }),
+    {
+      name: 'wallet-storage', // Name of localStorage key
+      getStorage: () => localStorage, // Using localStorage to persist data
     }
-}) )
+  )
+);
+
+// Password Store with Persistence using LocalStorage
+export const usePasswordStore = create<PasswordStore>()(
+  persist(
+    (set, get) => ({
+      password: '',
+      setPassword: (pass: string) => set({ password: pass }),
+      getPassword: () => {
+        const { password } = get();
+        return password;
+      },
+    }),
+    {
+      name: 'password-storage', // Name of localStorage key
+      getStorage: () => localStorage, // Using localStorage to persist data
+    }
+  )
+);

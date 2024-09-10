@@ -5,7 +5,7 @@ import { Separator } from "./ui/separator";
 
 const Navbar = () => {
   return (
-    <nav className="flex justify-between items-center py-4  md:px-24">
+      <nav className=" flex justify-between items-center py-4  md:px-24">
       <div className="flex items-center gap-2">
         <Box className="size-8" />
         <div className="flex flex-col gap-4">
@@ -18,7 +18,7 @@ const Navbar = () => {
         </div>  
       </div>
       <ModeToggle />
-    </nav>
+      </nav> 
   );
 };
 
